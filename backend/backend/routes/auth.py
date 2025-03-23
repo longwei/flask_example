@@ -15,5 +15,5 @@ def login():
     if not check_password_hash(allowed_users[d["username"]], d["password"]):
         raise Exception("Invalid password")
 
-    encoded_jwt = jwt.encode({"sub": 1, "name": "longwei"}, secret_token, algorithm="HS256")
+    encoded_jwt = jwt.encode({"sub": 'sub', "name": "longwei"}, secret_token, algorithm="HS256")
     return jsonify({"token": encoded_jwt})

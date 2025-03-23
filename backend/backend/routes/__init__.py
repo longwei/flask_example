@@ -31,7 +31,9 @@ def verify_token(token):
     try:
         decoded_jwt = jwt.decode(token, secret_token, algorithms=["HS256"])
     except Exception as e:
+        print(e)
         return None
     if decoded_jwt["name"] in allowed_users:
+        print('name', decoded_jwt["name"])
         return decoded_jwt["name"]
     return None

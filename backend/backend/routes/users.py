@@ -11,7 +11,7 @@ def get_all_users():
     return jsonify(all_users)
 
 @users_bp.route("", methods=["POST"])
-@basic_auth.login_required
+@token_auth.login_required  # Changed from basic_auth to token_auth
 def create_user():
     d = request.json
     print(d)
