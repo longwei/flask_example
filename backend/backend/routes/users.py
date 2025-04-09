@@ -1,45 +1,38 @@
+from sqlalchemy import select, insert
+from werkzeug.security import generate_password_hash
+
+from backend import db
+from backend.dto.user import UserCreationSchema
+from backend.models.user import User, UserSchema
 from backend.routes import basic_auth, token_auth
-from backend.entity.user import User
-from backend.extensions import db
 
 from flask import Blueprint, jsonify, request, Response
-from sqlalchemy import select
 
 users_bp = Blueprint("users", __name__, url_prefix="/users")
+user_schema = UserSchema()
+user_creation_schema = UserCreationSchema()
+
 
 @users_bp.route("", methods=["GET"])
 @token_auth.login_required
 def get_all_users():
-    # all_users = [{"id": 1, "name": "joe"}, {"id": 2, "name": "bob"}]
-    # all_users = User.query.all()
+    users = db.session.scalars(select(User)).all()
+    return jsonify(user_schema.dump(users, many=True))
 
-
-    # style 2.0
-    all_users = db.session.scalars(select(User)).all()
-
-    return jsonify(all_users)
 
 @users_bp.route("", methods=["POST"])
-@token_auth.login_required  # Changed from basic_auth to token_auth
 def create_user():
     d = request.json
-    print(d)
+    new_user = user_creation_schema.load(d)
+
+    db.session.execute(
+        insert(User).values(username=new_user.username, email=new_user.email, password=generate_password_hash(new_user.password)))
+    db.session.commit()
+
     return Response(status=204)
-    # return jsonify(d), 201
 
-
-@users_bp.route("/<int:user_id>", methods=["GET"])
+@users_bp.route("/<user_id>")
 @token_auth.login_required
 def get_user(user_id):
-    # 1.x styple
-    # user = User.query.filter_by(id=user_id).one()
-
-    # final though on ORM...it is crazy, it make simple thing slightly complicated
-    # and make complicated thing even more complicated.
-    # I will stick with raw SQL for now.
-
-
-    user = db.session.get(User, user_id)
-    if user:
-        return jsonify(user)
-    return Response(status=404)
+    user = db.session.scalars(select(User).where(User.id == user_id)).one()
+    return jsonify(user_schema.dump(user))

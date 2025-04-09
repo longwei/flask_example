@@ -1,10 +1,8 @@
-from backend import create_app
+from backend import create_app, db, feed_db
 
 app = create_app()
 
-
-
-
-
 if __name__ == "__main__":
-    app.run(host="127.0.0.1")
+    db.create_all()
+    feed_db()
+    app.run()
